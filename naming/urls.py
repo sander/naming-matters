@@ -9,4 +9,5 @@ urlpatterns = [
     path("<uuid:concept_key>/", views.detail, name="detail"),
     path("_new/", views.new, name="new"),
     path("_edit/<uuid:concept_key>/", views.edit, name="edit"),
+    path("_export/", views.export, name="export"),
 ]

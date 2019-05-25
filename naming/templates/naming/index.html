@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+<a href="{% url 'naming:export' %}">Export</a>
+
 {% if concept_list %}
 <ul>
   {% for concept in concept_list %}
