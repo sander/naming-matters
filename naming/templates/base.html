@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+
+<h1><a href="{% url "naming:index" %}">Sama Sama</a></h1>
+
+{% if user.is_authenticated %}
+<p>
+  Welcome, {{ user.username }}. Thanks for logging in.
+  <a href="{% url "logout" %}">Log out</a>
+</p>
+{% else %}
+<p>Welcome, new user. Please log in.</p>
+{% endif %}
+
+<hr />
+
+{% block content %}{% endblock %}

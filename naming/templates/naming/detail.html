@@ -1,0 +1,94 @@
+{% extends "base.html" %} {% block content %}
+
+<form action="{% url 'naming:edit' concept.key %}" method="post">
+  {% csrf_token %}
+  <h1><input name="label" value="{{ concept }}" style="font-size:inherit"></h1>
+
+  <dl>
+    <dt>Kind</dt>
+    <dd>
+      {% if concept.kind %}
+      <a href="{% url 'naming:detail' concept.kind.key %}">{{ concept.kind }}</a>
+      {% else %} class {% endif %}
+      <select name="kind">
+        <option value="">class</option>
+        {% for kind in kinds %}
+          <option value="{{ kind.key }}" {% ifequal kind.key concept.kind.key %} selected {% endifequal %}>{{ kind.label }}
+        {% endfor %}
+      </select>
+    </dd>
+    <dt>Context</dt>
+    <dd>
+      {% if concept.context %}
+      <a href="{% url 'naming:detail' concept.context.key %}">{{ concept.context }}</a>
+      {% else %} global {% endif %}
+      <select name="context">
+        <option value="">global</option>
+        {% for context in contexts %}
+          <option value="{{ context.key }}" {% ifequal context.key concept.context.key %} selected {% endifequal %}>{{ context.label }}
+        {% endfor %}
+      </select>
+    </dd>
+  </dl>
+  <p><button type="submit">Save</button></p>
+</form>
+
+<section>
+  <h2>Instances</h2>
+  {% if concept.instances.count %}
+    <ul>
+      {% for instance in concept.instances.all %}
+        <li><a href="{% url 'naming:detail' instance.key %}">{{ instance.label }}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>None</p>
+  {% endif %}
+
+  {% if not concept.kind %}
+  New instance:
+  <form action="{% url "naming:new" %}" method="post">
+    {% csrf_token %}
+    <input name="label" placeholder="Label" autofocus>
+    <input type="hidden" name="kind" value="{{ concept.key }}">
+    <button type="submit">Add</button>
+  </form>
+  {% endif %}
+</section>
+
+<section>
+  <h2>Concepts in the context of {{ concept.label }}</h2>
+  {% if concept.concepts.count %}
+    <ul>
+      {% for c in concept.concepts.all %}
+        <li><a href="{% url 'naming:detail' c.key %}">{{ c.label }}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>None</p>
+  {% endif %}
+  <form action="{% url "naming:new" %}" method="post">
+    {% csrf_token %}
+    <input name="label" placeholder="Label" autofocus>
+    <select name="kind">
+      <option value="">class
+      {% for kind in kinds %}
+        <option value="{{ kind.key }}">{{ kind.label }}
+      {% endfor %}
+    </select>
+    <input type="hidden" name="context" value="{{ concept.key }}">
+    <button type="submit">Add</button>
+  </form>
+</section>
+
+<!--
+<form action="{% url "naming:new" %}" method="post">
+  {% csrf_token %}
+  <input name="label" placeholder="Label" autofocus>
+  <input name="kind" placeholder="Kind">
+  <input name="context" placeholder="Context">
+  <button type="submit">Add</button>
+</form>
+-->
+
+{% endblock %}

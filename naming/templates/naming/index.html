@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if concept_list %}
+<ul>
+  {% for concept in concept_list %}
+  <li>
+    <a href="{% url "naming:detail" concept.key %}">{{ concept.label }}</a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No concepts found.</p>
+{% endif %}
+
+<!--
+<form action="{% url "naming:new" %}" method="post">
+  {% csrf_token %}
+  <input name="label" placeholder="Label">
+  <input name="kind" placeholder="Kind">
+  <input name="context" placeholder="Context">
+  <button type="submit">Save</button>
+</form>
+-->
+
+New kind:
+<form action="{% url "naming:new" %}" method="post">
+  {% csrf_token %}
+  <input name="label" placeholder="Label" autofocus>
+  <button type="submit">Add</button>
+</form>
+
+{% endblock %}
