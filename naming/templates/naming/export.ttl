@@ -4,8 +4,16 @@
 # TODO split per bounded context / link concepts (for bounded contexts) to github files
 # TODO rdfs:isDefinedBy
 # TODO root concept should be <>
-{% for concept in concepts %}
-<#{{ concept.key }}> a {% if concept.kind %}<#{{ concept.kind.key }}>{% else %}rdfs:Class{% endif %} ;
-{% if concept.context %}  rdfs:member <#{{ concept.context.key }}> ;
-{% endif %}  rdfs:label "{{ concept.label }}" .
+{% for c in concept.descendants_in_context_including_self %}
+<#{{ c.key }}> a {% if c.parent %}<#{{ c.parent.key }}>{% else %}rdfs:Class{% endif %} ;
+{% if c.context.parent %}  rdfs:member <#{{ c.context.parent.concept.key }}> ;
+{% endif %}  rdfs:label "{{ c.label }}" .
 {% endfor %}
+
+{% comment %}
+{% for c in concept.kind_hierarchy %}
+<#{{ c.key }}> a {% if c.parent %}<#{{ c.parent.key }}>{% else %}rdfs:Class{% endif %} ;
+{% if c.context.parent %}  rdfs:member <#{{ c.context.parent.concept.key }}> ;
+{% endif %}  rdfs:label "{{ c.label }}" .
+{% endfor %}
+{% endcomment %}

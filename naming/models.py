@@ -3,20 +3,18 @@ import uuid
 from django.conf import settings
 from django.db import models
 from django.template import loader
+from mptt.models import MPTTModel, TreeForeignKey
 
 
-class Concept(models.Model):
+class Concept(MPTTModel):
     key = models.UUIDField(default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.CASCADE)
     label = models.CharField(max_length=200)
-    kind = models.ForeignKey(
-        "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="instances")
-    context = models.ForeignKey(
-        "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="concepts")
+    parent = TreeForeignKey(
+        "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="children", verbose_name="Kind")
 
     def __str__(self):
-        # return f"{self.label} ({self.owner} in {self.context})"
         return self.label
 
     class Meta:
@@ -24,40 +22,37 @@ class Concept(models.Model):
             models.UniqueConstraint(
                 fields=["key", "owner"],
                 name="unique_keys_per_owner"),
-            models.UniqueConstraint(
-                fields=["owner", "label", "context"], name="unique_concept_per_owner_and_context"),
         ]
 
-    def turtle(self):
-        def id(c):
-            if c:
-                if c.key == self.key:
-                    return ""
-                else:
-                    return f"#{c.key}"
-            else:
-                return None
-        concepts = [{"id": "", "label": self.label,
-                     "kind": id(self.kind)}]
+    def descendants_in_context(self):
+        if hasattr(self, "context"):
+            return [ctx.concept for ctx in self.context.get_descendants()]
+        else:
+            return []
 
-        children = Concept.objects.filter(owner=self.owner, context=self)
-        concepts.extend([{"id": id(c), "label": c.label, "kind": id(
-            c.kind), "context": id(c.context)} for c in children])
+    def descendants_in_context_including_self(self):
+        if hasattr(self, "context"):
+            return [ctx.concept for ctx in self.context.get_descendants(include_self=True)]
+        else:
+            return [self]
 
-        template = loader.get_template("naming/export2.ttl")
-        #concepts = Concept.objects.filter(owner=self.owner).order_by("key")
-        #concepts = Concept.objects.filter(owner=request.user, key=concept_key)
-        export = template.render({"concepts": concepts})
-        return export
-        #template = loader.get_template("naming/export.ttl")
-        #concepts = Concept.objects.filter(owner=request.user).order_by("key")
-        #concepts = Concept.objects.filter(owner=request.user, key=concept_key)
-        #export = template.render({"concepts": concepts}, request)
+    def kind_hierarchy(self):
+        return self.get_ancestors()
 
-#        return """@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-# @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-#
-# """ + "foo"
+    def deps(self):
+        if self.context:
+            desc = {ctx.concept for ctx in self.context.get_descendants(
+                include_self=True)}
+        else:
+            desc = {self}
+        return {concept.parent for concept in desc if concept.parent != None} - desc
 
-    def dependencies(self):
-        pass
+
+class Context(MPTTModel):
+    concept = models.OneToOneField(
+        Concept, on_delete=models.CASCADE, primary_key=True)
+    parent = TreeForeignKey(
+        "self", on_delete=models.CASCADE, blank=True, null=True, related_name="children")
+
+    def __str__(self):
+        return str(self.concept)

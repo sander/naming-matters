@@ -4,10 +4,12 @@
 
 {% include 'naming/concept_list.html' with concepts=concept_list %}
 
+{% comment %}
 <form class="add-form" action="{% url 'naming:new' %}" method="post">
   {% csrf_token %}
   <input class="add-form__main-field" name="label" placeholder="New kind name" autofocus>
   <button class="add-form__main-button" type="submit">Add</button>
 </form>
+{% endcomment %}
 
 {% endblock %}

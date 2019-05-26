@@ -10,7 +10,7 @@ from .models import Concept
 @login_required
 def index(request):
     concept_list = Concept.objects.filter(
-        owner=request.user, kind=None).order_by("label")
+        owner=request.user, parent=None).order_by("label")
     context = {"concept_list": concept_list}
     return render(request, "naming/index.html", context)
 
@@ -18,13 +18,17 @@ def index(request):
 @login_required
 def detail(request, concept_key):
     concept = get_object_or_404(Concept, key=concept_key, owner=request.user)
-    contexts = Concept.objects.filter(owner=request.user).exclude(kind=None)
-    kinds = Concept.objects.filter(owner=request.user, kind=None)
+    contexts = []
+    kinds = []
+    #contexts = Concept.objects.filter(owner=request.user).exclude(kind=None)
+    #kinds = Concept.objects.filter(owner=request.user, kind=None)
 
     template = loader.get_template("naming/export.ttl")
-    concepts = Concept.objects.filter(owner=request.user).order_by("key")
+    #concepts = Concept.objects.filter(owner=request.user).order_by("key")
     #concepts = Concept.objects.filter(owner=request.user, key=concept_key)
-    export = template.render({"concepts": concepts}, request)
+    export = template.render({"concept": concept}, request)
+    #export = ""
+    print("deps", concept.deps())
 
     return render(request, "naming/detail.html", {"concept": concept, "kinds": kinds, "contexts": contexts, "export": export})
 

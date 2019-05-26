@@ -1,42 +1,52 @@
 {% extends "base.html" %} {% block content %}
 
+{% comment %}
 <form action="{% url 'naming:edit' concept.key %}" method="post">
   {% csrf_token %}
+{% endcomment %}
   <h1><input name="label" value="{{ concept }}" style="font-size:inherit"></h1>
 
   <dl>
     <dt>Kind</dt>
     <dd>
-      {% if concept.kind %}
-      <a href="{% url 'naming:detail' concept.kind.key %}">{{ concept.kind }}</a>
+      {% if concept.parent %}
+      <a href="{% url 'naming:detail' concept.parent.key %}">{{ concept.parent }}</a>
       {% else %} class {% endif %}
+
+{% comment %}
       <select name="kind">
         <option value="">class</option>
         {% for kind in kinds %}
-          <option value="{{ kind.key }}" {% ifequal kind.key concept.kind.key %} selected {% endifequal %}>{{ kind.label }}
+          <option value="{{ kind.key }}" {% ifequal kind.key concept.parent.key %} selected {% endifequal %}>{{ kind.label }}
         {% endfor %}
       </select>
+      {% endcomment %}
     </dd>
     <dt>Context</dt>
     <dd>
-      {% if concept.context %}
-      <a href="{% url 'naming:detail' concept.context.key %}">{{ concept.context }}</a>
+      {% if concept.context.parent %}
+      <a href="{% url 'naming:detail' concept.context.parent.concept.key %}">{{ concept.context.parent }}</a>
       {% else %} global {% endif %}
+      {% comment %}
       <select name="context">
         <option value="">global</option>
         {% for context in contexts %}
-          <option value="{{ context.key }}" {% ifequal context.key concept.context.key %} selected {% endifequal %}>{{ context.label }}
+          <option value="{{ context.key }}" {% ifequal context.key concept.context.parent.key %} selected {% endifequal %}>{{ context.label }}
         {% endfor %}
       </select>
+      {% endcomment %}
     </dd>
   </dl>
+{% comment %}
   <p><button type="submit">Save</button></p>
 </form>
+{% endcomment %}
 
 <section>
   <h2>Instances</h2>
-  {% include 'naming/concept_list.html' with concepts=concept.instances.all %}
+  {% include 'naming/concept_list.html' with concepts=concept.children.all %}
 
+{% comment %}
   {% if not concept.kind %}
   <form class="add-form" action="{% url "naming:new" %}" method="post">
     {% csrf_token %}
@@ -45,11 +55,13 @@
     <button class="add-form__main-button" type="submit">Add</button>
   </form>
   {% endif %}
+{% endcomment %}
 </section>
 
 <section>
   <h2>Concepts in the context of {{ concept.label }}</h2>
-  {% include 'naming/concept_list.html' with concepts=concept.concepts.all %}
+  {% include 'naming/concept_list.html' with concepts=concept.descendants_in_context %}
+{% comment %}
   <form class="add-form" action="{% url "naming:new" %}" method="post">
     {% csrf_token %}
     <input class="add-form__main-field" name="label" placeholder="New concept name" autofocus>
@@ -62,16 +74,20 @@
     <input type="hidden" name="context" value="{{ concept.key }}">
     <button class="add-form__main-button" type="submit">Add</button>
   </form>
+{% endcomment %}
 </section>
 
+{% comment %}
 <section>
   <h2>Export v2</h2>
   <pre>{{ concept.turtle|force_escape }}</pre>
 </section>
+{% endcomment %}
 
 <h2>Export</h2>
 <pre>
 {{ export|force_escape }}
 </pre>
+
 
 {% endblock %}
