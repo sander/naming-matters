@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 
-<h1><a href="{% url "naming:index" %}">Sama Sama</a></h1>
+{% load static %}
 
-{% if user.is_authenticated %}
-<p>
-  Welcome, {{ user.username }}. Thanks for logging in.
-  <a href="{% url "logout" %}">Log out</a>
-</p>
-{% else %}
-<p>Welcome, new user. Please log in.</p>
-{% endif %}
+<meta name="viewport" content="initial-scale=1">
+<link rel="stylesheet" href="{% static 'naming/main.css' %}">
 
-<hr />
+<header class="header">
+  <h1><a href="{% url 'naming:index' %}">Naming Matters</a></h1>
+  <p>
+  <a href="{% url 'naming:export' %}">Export</a>
+  <a href="{% url 'naming:settings' %}">Settings</a>
+  </p>
+</header>
 
 {% block content %}{% endblock %}

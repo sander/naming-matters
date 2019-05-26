@@ -35,41 +35,24 @@
 
 <section>
   <h2>Instances</h2>
-  {% if concept.instances.count %}
-    <ul>
-      {% for instance in concept.instances.all %}
-        <li><a href="{% url 'naming:detail' instance.key %}">{{ instance.label }}</a></li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>None</p>
-  {% endif %}
+  {% include 'naming/concept_list.html' with concepts=concept.instances.all %}
 
   {% if not concept.kind %}
-  New instance:
-  <form action="{% url "naming:new" %}" method="post">
+  <form class="add-form" action="{% url "naming:new" %}" method="post">
     {% csrf_token %}
-    <input name="label" placeholder="Label" autofocus>
+    <input class="add-form__main-field" name="label" placeholder="New instance name" autofocus>
     <input type="hidden" name="kind" value="{{ concept.key }}">
-    <button type="submit">Add</button>
+    <button class="add-form__main-button" type="submit">Add</button>
   </form>
   {% endif %}
 </section>
 
 <section>
   <h2>Concepts in the context of {{ concept.label }}</h2>
-  {% if concept.concepts.count %}
-    <ul>
-      {% for c in concept.concepts.all %}
-        <li><a href="{% url 'naming:detail' c.key %}">{{ c.label }}</a></li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>None</p>
-  {% endif %}
-  <form action="{% url "naming:new" %}" method="post">
+  {% include 'naming/concept_list.html' with concepts=concept.concepts.all %}
+  <form class="add-form" action="{% url "naming:new" %}" method="post">
     {% csrf_token %}
-    <input name="label" placeholder="Label" autofocus>
+    <input class="add-form__main-field" name="label" placeholder="New concept name" autofocus>
     <select name="kind">
       <option value="">class
       {% for kind in kinds %}
@@ -77,19 +60,9 @@
       {% endfor %}
     </select>
     <input type="hidden" name="context" value="{{ concept.key }}">
-    <button type="submit">Add</button>
+    <button class="add-form__main-button" type="submit">Add</button>
   </form>
 </section>
-
-<!--
-<form action="{% url "naming:new" %}" method="post">
-  {% csrf_token %}
-  <input name="label" placeholder="Label" autofocus>
-  <input name="kind" placeholder="Kind">
-  <input name="context" placeholder="Context">
-  <button type="submit">Add</button>
-</form>
--->
 
 <h2>Export</h2>
 <pre>

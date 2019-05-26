@@ -9,11 +9,10 @@ from .models import Concept
 
 @login_required
 def index(request):
-    concept_list = Concept.objects.filter(owner=request.user, kind=None)
+    concept_list = Concept.objects.filter(
+        owner=request.user, kind=None).order_by("label")
     context = {"concept_list": concept_list}
     return render(request, "naming/index.html", context)
-    # output = ", ".join([c.label for c in concept_list])
-    # return HttpResponse(output)
 
 
 @login_required
@@ -80,3 +79,8 @@ def export(request):
     template = loader.get_template("naming/export.ttl")
     concepts = Concept.objects.filter(owner=request.user)
     return HttpResponse(template.render({"concepts": concepts}, request), content_type="text/plain")
+
+
+@login_required
+def settings(request):
+    return render(request, "naming/settings.html", {})

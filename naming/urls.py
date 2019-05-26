@@ -10,4 +10,5 @@ urlpatterns = [
     path("_new/", views.new, name="new"),
     path("_edit/<uuid:concept_key>/", views.edit, name="edit"),
     path("_export/", views.export, name="export"),
+    path("_settings/", views.settings, name="settings"),
 ]

@@ -1,0 +1,11 @@
+<div class="concepts">
+  {% if concepts %}
+    <ul>
+      {% for concept in concepts %}
+      <li>
+        <a href="{% url "naming:detail" concept.key %}">{{ concept.label }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>

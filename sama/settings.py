@@ -25,7 +25,7 @@ SECRET_KEY = 'vmg5zjc&^)sd&e!a$@6m#=85tr=+^$ezk@!6vhgxvmrol3)sj='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["wortel.fritz.box", "localhost"]
 
 
 # Application definition
