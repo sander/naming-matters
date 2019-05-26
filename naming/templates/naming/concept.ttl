@@ -1,0 +1,3 @@
+<#{{ id }}> a {% if kind %}<#{{ kind }}>{% else %}rdfs:Class{% endif %} ;
+{% if context %}  rdfs:member <#{{ context }}> ;
+{% endif %}  rdfs:label "{{ label }}" .

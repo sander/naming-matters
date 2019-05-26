@@ -1,0 +1,7 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+{% for concept in concepts %}
+<{{ concept.id }}> a {% if concept.kind %}<{{ concept.kind }}>{% else %}rdfs:Class{% endif %} ;
+{% if concept.context is not None %}  rdfs:member <{{ concept.context }}> ;
+{% endif %}  rdfs:label "{{ concept.label }}" .
+{% endfor %}

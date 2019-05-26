@@ -23,6 +23,7 @@ def detail(request, concept_key):
 
     template = loader.get_template("naming/export.ttl")
     concepts = Concept.objects.filter(owner=request.user).order_by("key")
+    #concepts = Concept.objects.filter(owner=request.user, key=concept_key)
     export = template.render({"concepts": concepts}, request)
 
     return render(request, "naming/detail.html", {"concept": concept, "kinds": kinds, "contexts": contexts, "export": export})
