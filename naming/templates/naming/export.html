@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Export</h1>
+
+<ul>
+  {% for repo in repositories %}
+    <li>
+      <h2>{{ repo }}</h2>
+      <h3>Mappings</h3>
+      <ul>
+        {% for name, file in repo.files.items %}
+          <li>
+            <h4>{{ name }}</h4>
+            <pre>{{ file|force_escape }}</pre>
+        {% endfor %}
+      </ul>
+      <h3>Missing dependencies</h3>
+      <ul>
+        {% for concept in repo.missing_dependencies %}
+          <li>{{ concept }} ({{ concept.key }})</li>
+        {% endfor %}
+      </ul>
+  {% endfor %}
+</ul>
+
+{% endblock %}

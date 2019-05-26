@@ -1,19 +1,10 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
-# TODO split per bounded context / link concepts (for bounded contexts) to github files
 # TODO rdfs:isDefinedBy
-# TODO root concept should be <>
-{% for c in concept.descendants_in_context_including_self %}
-<#{{ c.key }}> a {% if c.parent %}<#{{ c.parent.key }}>{% else %}rdfs:Class{% endif %} ;
-{% if c.context.parent %}  rdfs:member <#{{ c.context.parent.concept.key }}> ;
+{% for c in concepts %}
+<{{ c.key }}>
+  a {% if c.kind %}<{{ c.kind }}>{% else %}rdfs:Class{% endif %} ;
+{% if c.context %}  rdfs:member <#{{ c.context }}> ;
 {% endif %}  rdfs:label "{{ c.label }}" .
 {% endfor %}
-
-{% comment %}
-{% for c in concept.kind_hierarchy %}
-<#{{ c.key }}> a {% if c.parent %}<#{{ c.parent.key }}>{% else %}rdfs:Class{% endif %} ;
-{% if c.context.parent %}  rdfs:member <#{{ c.context.parent.concept.key }}> ;
-{% endif %}  rdfs:label "{{ c.label }}" .
-{% endfor %}
-{% endcomment %}

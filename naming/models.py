@@ -1,4 +1,6 @@
 import uuid
+import pprint
+import posixpath
 
 from django.conf import settings
 from django.db import models
@@ -56,3 +58,54 @@ class Context(MPTTModel):
 
     def __str__(self):
         return str(self.concept)
+
+
+class Repository(models.Model):
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL,
+                              on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name_plural = "repositories"
+
+    def missing_dependencies(self):
+        defined = {d for mapping in self.mappings.all()
+                   for d in mapping.context.get_descendants(include_self=True)}
+        used = {a for d in defined for a in d.concept.get_ancestors(
+            include_self=True)}
+        defined_keys = {d.concept.key for d in defined}
+        return [c for c in used if c.key not in defined_keys]
+
+    def files(self):
+        keys = {ctx.concept.key: m.path if ctx.concept.key == m.context.concept.key else (m.path, ctx.concept.key)
+                for m in self.mappings.all()
+                for ctx in m.context.get_descendants(include_self=True)}
+        template = loader.get_template("naming/export.ttl")
+
+        def turtle(mapping):
+            def key(k):
+                if k not in keys:
+                    return f"MISSING#{k}"
+                elif keys[k] == mapping.path:
+                    return ""
+                elif isinstance(keys[k], str):
+                    return keys[k]
+                else:
+                    path, segment = keys[k]
+                    return f"#{segment}" if path == mapping.path else f"{posixpath.relpath(path, posixpath.dirname(mapping.path))}#{segment}"
+            desc = [{"key": key(d.concept.key),
+                     "kind": key(d.concept.parent.key) if d.concept.parent else None,
+                     "context": key(d.parent.concept.key) if d.parent else None,
+                     "label": d.concept.label}
+                    for d in mapping.context.get_descendants(include_self=True)]
+            return template.render({"concepts": desc})
+        return {m.path: turtle(m) for m in self.mappings.all()}
+
+
+class SyncMapping(models.Model):
+    repository = models.ForeignKey(
+        Repository, on_delete=models.CASCADE, related_name="mappings")
+    context = models.ForeignKey(Context, on_delete=models.CASCADE)
+    path = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.repository}: {self.path} ← {self.context}"

@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.template import loader
 
-from .models import Concept
+from .models import Concept, Repository
 
 
 @login_required
@@ -81,9 +81,10 @@ def edit(request, concept_key):
 
 @login_required
 def export(request):
-    template = loader.get_template("naming/export.ttl")
-    concepts = Concept.objects.filter(owner=request.user)
-    return HttpResponse(template.render({"concepts": concepts}, request), content_type="text/plain")
+    return render(request, "naming/export.html", {"repositories": Repository.objects.filter(owner=request.user)})
+    #template = loader.get_template("naming/export.ttl")
+    #concepts = Concept.objects.filter(owner=request.user)
+    # return HttpResponse(template.render({"concepts": concepts}, request), content_type="text/plain")
 
 
 @login_required
