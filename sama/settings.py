@@ -20,7 +20,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'vmg5zjc&^)sd&e!a$@6m#=85tr=+^$ezk@!6vhgxvmrol3)sj='
+# SECRET_KEY = 'vmg5zjc&^)sd&e!a$@6m#=85tr=+^$ezk@!6vhgxvmrol3)sj='
+SECRET_KEY = os.environ["SECRET_KEY"]
+
+GITHUB_CLIENT_ID = os.environ["GITHUB_CLIENT_ID"]
+GITHUB_CLIENT_SECRET = os.environ["GITHUB_CLIENT_SECRET"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

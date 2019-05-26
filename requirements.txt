@@ -1,2 +1,6 @@
 Django==2.2.1
 django-mptt==0.10.0
+PyGithub==1.43.7
+#oauthlib==3.0.1
+requests=2.22.0
+requests-oauthlib==1.2.0

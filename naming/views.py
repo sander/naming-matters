@@ -1,8 +1,13 @@
+import ast
+
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.template import loader
+from django.conf import settings as conf_settings
+from oauthlib.oauth2 import WebApplicationClient
+from requests_oauthlib import OAuth2Session
 
 from .models import Concept, Repository
 
@@ -18,19 +23,8 @@ def index(request):
 @login_required
 def detail(request, concept_key):
     concept = get_object_or_404(Concept, key=concept_key, owner=request.user)
-    contexts = []
-    kinds = []
-    #contexts = Concept.objects.filter(owner=request.user).exclude(kind=None)
-    #kinds = Concept.objects.filter(owner=request.user, kind=None)
 
-    template = loader.get_template("naming/export.ttl")
-    #concepts = Concept.objects.filter(owner=request.user).order_by("key")
-    #concepts = Concept.objects.filter(owner=request.user, key=concept_key)
-    export = template.render({"concept": concept}, request)
-    #export = ""
-    print("deps", concept.deps())
-
-    return render(request, "naming/detail.html", {"concept": concept, "kinds": kinds, "contexts": contexts, "export": export})
+    return render(request, "naming/detail.html", {"concept": concept})
 
 
 @login_required
@@ -81,10 +75,33 @@ def edit(request, concept_key):
 
 @login_required
 def export(request):
-    return render(request, "naming/export.html", {"repositories": Repository.objects.filter(owner=request.user)})
-    #template = loader.get_template("naming/export.ttl")
-    #concepts = Concept.objects.filter(owner=request.user)
-    # return HttpResponse(template.render({"concepts": concepts}, request), content_type="text/plain")
+    if request.POST:
+        scope = ["public_repo"]
+        oauth = OAuth2Session(
+            client_id=conf_settings.GITHUB_CLIENT_ID, scope=scope)
+        authorization_url, state = oauth.authorization_url(
+            "https://github.com/login/oauth/authorize")
+        request.session["repo_id"] = request.POST["repo"]
+        return HttpResponseRedirect(authorization_url)
+    else:
+        return render(request, "naming/export.html", {"repositories": Repository.objects.filter(owner=request.user)})
+
+
+@login_required
+def oauth2_callback(request):
+    authorization_response = "https://example.com" + request.get_full_path()
+    scope = ["public_repo"]
+    oauth = OAuth2Session(
+        client_id=conf_settings.GITHUB_CLIENT_ID, scope=scope)
+    response = oauth.fetch_token("https://github.com/login/oauth/access_token",
+                                 authorization_response=authorization_response,
+                                 client_secret=conf_settings.GITHUB_CLIENT_SECRET)
+    token = response["access_token"]
+    repo = get_object_or_404(
+        Repository, pk=int(request.session["repo_id"]), owner=request.user)
+    del request.session["repo_id"]
+    repo.push_to_github(token)
+    return HttpResponseRedirect(reverse("naming:export"))
 
 
 @login_required

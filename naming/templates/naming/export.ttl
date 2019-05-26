@@ -1,10 +1,8 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-
-# TODO rdfs:isDefinedBy
 {% for c in concepts %}
 <{{ c.key }}>
   a {% if c.kind %}<{{ c.kind }}>{% else %}rdfs:Class{% endif %} ;
-{% if c.context %}  rdfs:member <#{{ c.context }}> ;
+{% if c.context is not None %}  rdfs:member <{{ c.context }}> ;
 {% endif %}  rdfs:label "{{ c.label }}" .
 {% endfor %}

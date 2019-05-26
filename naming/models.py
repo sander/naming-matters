@@ -1,10 +1,10 @@
 import uuid
-import pprint
 import posixpath
 
 from django.conf import settings
 from django.db import models
 from django.template import loader
+from github import Github, InputGitTreeElement
 from mptt.models import MPTTModel, TreeForeignKey
 
 
@@ -63,9 +63,14 @@ class Context(MPTTModel):
 class Repository(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    branch = models.CharField(max_length=255)
 
     class Meta:
         verbose_name_plural = "repositories"
+
+    def __str__(self):
+        return f"{self.name}/{self.branch}"
 
     def missing_dependencies(self):
         defined = {d for mapping in self.mappings.all()
@@ -92,13 +97,31 @@ class Repository(models.Model):
                 else:
                     path, segment = keys[k]
                     return f"#{segment}" if path == mapping.path else f"{posixpath.relpath(path, posixpath.dirname(mapping.path))}#{segment}"
-            desc = [{"key": key(d.concept.key),
-                     "kind": key(d.concept.parent.key) if d.concept.parent else None,
-                     "context": key(d.parent.concept.key) if d.parent else None,
-                     "label": d.concept.label}
-                    for d in mapping.context.get_descendants(include_self=True)]
+            desc = sorted([{"key": key(d.concept.key),
+                            "kind": key(d.concept.parent.key) if d.concept.parent else None,
+                            "context": key(d.parent.concept.key) if d.parent else None,
+                            # "context": d.parent if d.parent else None,
+                            "label": d.concept.label}
+                           for d in mapping.context.get_descendants(include_self=True)], key=lambda x: x["key"])
             return template.render({"concepts": desc})
         return {m.path: turtle(m) for m in self.mappings.all()}
+
+    def push_to_github(self, access_token):
+        message = "Commit from Naming Matters"
+        g = Github(access_token)
+        repo = g.get_repo(self.name)
+        ref = repo.get_git_ref(f"heads/{self.branch}")
+        tree = repo.get_git_tree(ref.object.sha, recursive=True)
+        commit = repo.get_git_commit(ref.object.sha)
+        inputs = [InputGitTreeElement(path, "100644", "blob", content=content)
+                  for (path, content) in self.files().items()]
+        new_tree = repo.create_git_tree(inputs,  base_tree=tree)
+        new_commit = repo.create_git_commit(
+            message=message,
+            parents=[commit],
+            tree=new_tree)
+        ref.edit(new_commit.sha)
+        return new_commit.sha
 
 
 class SyncMapping(models.Model):

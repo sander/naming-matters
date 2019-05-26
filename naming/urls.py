@@ -11,4 +11,5 @@ urlpatterns = [
     path("_edit/<uuid:concept_key>/", views.edit, name="edit"),
     path("_export/", views.export, name="export"),
     path("_settings/", views.settings, name="settings"),
+    path("_oauth2/callback/", views.oauth2_callback, name="oauth2callback"),
 ]
